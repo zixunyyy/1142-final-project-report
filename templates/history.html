@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>歷史紀錄 - EmpathEye</title>
+</head>
+<body>
+    <h1>歷史紀錄</h1>
+
+    {% for t, e in data %}
+    <p>{{ t }} - {{ e }}</p>
+    {% endfor %}
+
+    <a href="/">返回</a>
+</body>
+</html>
