@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2 class="fw-bold mb-4"><i class="fa-solid fa-chart-pie text-primary me-2"></i>情緒歷史儀表板</h2>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <!-- Chart Section -->
+    <div class="col-lg-5 mb-4 mb-lg-0">
+        <div class="card card-custom p-4 h-100">
+            <h5 class="fw-bold mb-3">情緒分佈圖</h5>
+            <div class="chart-container" style="position: relative; height:300px; width:100%">
+                <canvas id="emotionChart"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Stats Section -->
+    <div class="col-lg-7">
+        <div class="row g-3 h-100">
+            <div class="col-md-4">
+                <div class="card card-custom p-4 h-100 text-center d-flex justify-content-center align-items-center flex-column">
+                    <h6 class="text-muted fw-bold">總紀錄數</h6>
+                    <h2 class="display-4 fw-bold text-primary">{{ records|length }}</h2>
+                </div>
+            </div>
+            <div class="col-md-8">
+                <div class="card card-custom p-4 h-100">
+                    <h5 class="fw-bold mb-3">情緒類別統計</h5>
+                    <div class="d-flex justify-content-around mt-3">
+                        <div class="text-center">
+                            <h3 class="text-success fw-bold">{{ stats.get('Positive', 0) }}</h3>
+                            <span class="badge bg-success rounded-pill px-3 py-2">正向</span>
+                        </div>
+                        <div class="text-center">
+                            <h3 class="text-danger fw-bold">{{ stats.get('Negative', 0) }}</h3>
+                            <span class="badge bg-danger rounded-pill px-3 py-2">負向</span>
+                        </div>
+                        <div class="text-center">
+                            <h3 class="text-secondary fw-bold">{{ stats.get('Neutral', 0) }}</h3>
+                            <span class="badge bg-secondary rounded-pill px-3 py-2">中性</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- History Table -->
+<div class="row">
+    <div class="col-12">
+        <div class="card card-custom p-4">
+            <h5 class="fw-bold mb-4">歷史對話回顧</h5>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th scope="col" width="15%">時間</th>
+                            <th scope="col" width="35%">輸入文字</th>
+                            <th scope="col" width="10%">情緒</th>
+                            <th scope="col" width="10%">強度</th>
+                            <th scope="col" width="20%">社交建議</th>
+                            <th scope="col" width="10%" class="text-end">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in records %}
+                        <tr>
+                            <td class="text-muted small">{{ record.created_at[:16] }}</td>
+                            <td>{{ record.user_text }}</td>
+                            <td>
+                                <span class="emotion-tag emotion-{{ record.emotion }} px-2 py-1" style="font-size: 0.8rem;">
+                                    {% if record.emotion == 'Positive' %}正向
+                                    {% elif record.emotion == 'Negative' %}負向
+                                    {% else %}中性{% endif %}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="progress" style="height: 6px;">
+                                    <div class="progress-bar {% if record.emotion == 'Positive' %}bg-success{% elif record.emotion == 'Negative' %}bg-danger{% else %}bg-secondary{% endif %}" 
+                                         role="progressbar" style="width: {{ record.intensity }}%;"></div>
+                                </div>
+                                <small class="text-muted">{{ record.intensity }}%</small>
+                            </td>
+                            <td><small class="text-truncate d-inline-block" style="max-width: 150px;" title="{{ record.suggestion }}">{{ record.suggestion }}</small></td>
+                            <td class="text-end">
+                                <form action="{{ url_for('analyze.delete_record', record_id=record.id) }}" method="POST" class="d-inline" onsubmit="return confirm('確定要刪除這筆紀錄嗎？');">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger rounded-circle" title="刪除">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center py-4 text-muted">目前沒有任何情緒紀錄，去<a href="{{ url_for('index.index') }}">新增一筆</a>吧！</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const ctx = document.getElementById('emotionChart').getContext('2d');
+        const emotionChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['正向 (Positive)', '負向 (Negative)', '中性 (Neutral)'],
+                datasets: [{
+                    data: [{{ stats.get('Positive', 0) }}, {{ stats.get('Negative', 0) }}, {{ stats.get('Neutral', 0) }}],
+                    backgroundColor: [
+                        '#10b981', // green
+                        '#ef4444', // red
+                        '#6b7280'  // gray
+                    ],
+                    borderWidth: 0,
+                    hoverOffset: 10
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '70%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            font: { family: 'Inter', size: 12 }
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

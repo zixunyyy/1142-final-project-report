@@ -1,0 +1,75 @@
+body {
+    font-family: 'Inter', sans-serif;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e4ebf5 100%);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.glass-nav {
+    background: rgba(79, 70, 229, 0.9) !important;
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.card-custom {
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 16px;
+    border: 1px solid rgba(255,255,255,0.4);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+    backdrop-filter: blur(20px);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card-custom:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08);
+}
+
+.btn-primary-custom {
+    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+    border: none;
+    border-radius: 8px;
+    padding: 10px 24px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-primary-custom:hover {
+    background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+    transform: scale(1.05);
+    box-shadow: 0 8px 15px rgba(79, 70, 229, 0.3);
+}
+
+.emotion-tag {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.emotion-Positive {
+    background-color: #d1fae5;
+    color: #059669;
+}
+
+.emotion-Negative {
+    background-color: #fee2e2;
+    color: #dc2626;
+}
+
+.emotion-Neutral {
+    background-color: #f3f4f6;
+    color: #4b5563;
+}
+
+textarea.form-control {
+    border-radius: 12px;
+    border: 2px solid #e5e7eb;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+textarea.form-control:focus {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+}
