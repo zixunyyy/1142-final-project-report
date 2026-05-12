@@ -1,44 +1,54 @@
-from flask import Flask, render_template, request, redirect
+import os
 import sqlite3
+from flask import Flask, g
+from dotenv import load_dotenv
 
-app = Flask(__name__)
+# 載入環境變數
+load_dotenv()
 
-# 首頁
-@app.route("/")
-def index():
-    return render_template("index.html")
+def create_app():
+    app = Flask(__name__, template_folder='app/templates', static_folder='app/static')
+    
+    # 專案設定
+    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev')
+    app.config['DATABASE'] = os.path.join(app.instance_path, 'database.db')
+    
+    # 確保 instance 資料夾存在
+    try:
+        os.makedirs(app.instance_path)
+    except OSError:
+        pass
 
-# 新增日記
-@app.route("/add", methods=["POST"])
-def add():
-    text = request.form["text"]
+    # 資料庫連線釋放處理
+    @app.teardown_appcontext
+    def close_db(error):
+        db = g.pop('db', None)
+        if db is not None:
+            db.close()
 
-    # 情緒分析（簡單版）
-    if "開心" in text or "快樂" in text:
-        emotion = "正向"
-    elif "難過" in text or "生氣" in text:
-        emotion = "負向"
-    else:
-        emotion = "中性"
+    # 註冊路由 Blueprints
+    from app.routes.index import index_bp
+    from app.routes.analyze import analyze_bp
+    
+    app.register_blueprint(index_bp)
+    app.register_blueprint(analyze_bp)
+    
+    return app
 
-    conn = sqlite3.connect("database.db")
-    c = conn.cursor()
-    c.execute("CREATE TABLE IF NOT EXISTS diary(text, emotion)")
-    c.execute("INSERT INTO diary VALUES (?, ?)", (text, emotion))
-    conn.commit()
-    conn.close()
+app = create_app()
 
-    return redirect("/")
+def init_db():
+    """初始化資料庫 (用於執行 python -c 'from app import init_db; init_db()')"""
+    with app.app_context():
+        db = sqlite3.connect(
+            app.config['DATABASE'],
+            detect_types=sqlite3.PARSE_DECLTYPES
+        )
+        with app.open_resource('database/schema.sql', mode='r') as f:
+            db.cursor().executescript(f.read())
+        db.commit()
+        db.close()
+        print("Initialized the database.")
 
-# 查詢紀錄
-@app.route("/history")
-def history():
-    conn = sqlite3.connect("database.db")
-    c = conn.cursor()
-    c.execute("SELECT * FROM diary")
-    data = c.fetchall()
-    conn.close()
-    return render_template("history.html", data=data)
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     app.run(debug=True)
